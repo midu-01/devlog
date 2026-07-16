@@ -4,14 +4,14 @@ A full-stack social blogging platform where every post gets an **AI-generated TL
 
 ## Features
 
-- 🔐 **JWT authentication** — register/login, bcrypt-hashed passwords, 30-minute tokens, protected routes
-- ✍️ **Post CRUD** with strict ownership rules (only authors can edit/delete)
-- 👥 **Follow system** — follow/unfollow users, follower/following lists with counts
-- 📰 **Personalized feed** — paginated, newest-first posts from people you follow
-- ✨ **AI enrichment** — every new post gets a 2-3 sentence summary and 3-5 topic tags via LangChain (Groq / Llama, swappable to OpenAI/Anthropic with one line of config), generated in a background task so post creation is never blocked by the LLM
-- 🏷️ **Tag search** — GIN-indexed PostgreSQL array queries
-- 🧪 **36 pytest tests, 88% coverage** — real PostgreSQL test DB, mocked LLM
-- 🐳 **Dockerized** — one `docker compose up` for the whole stack
+- **JWT authentication** — register/login, bcrypt-hashed passwords, 30-minute tokens, protected routes
+- **Post CRUD** with strict ownership rules (only authors can edit/delete)
+- **Follow system** — follow/unfollow users, follower/following lists with counts
+- **Personalized feed** — paginated, newest-first posts from people you follow
+- **AI enrichment** — every new post gets a 2-3 sentence summary and 3-5 topic tags via LangChain (Groq / Llama, swappable to OpenAI/Anthropic with one line of config), generated in a background task so post creation is never blocked by the LLM
+- **Tag search** — GIN-indexed PostgreSQL array queries
+- **36 pytest tests, 88% coverage** — real PostgreSQL test DB, mocked LLM
+- **Dockerized** — one `docker compose up` for the whole stack
 
 ## Architecture
 
@@ -58,16 +58,16 @@ The key flow: `POST /api/posts` writes the post and returns **201 immediately**.
 |---|---|---|---|
 | POST | `/api/auth/register` | — | Create account (409 on duplicate) |
 | POST | `/api/auth/login` | — | OAuth2 form login → JWT |
-| GET | `/api/users/me` | ✅ | Current user |
-| POST | `/api/posts` | ✅ | Create post (queues AI enrichment) |
+| GET | `/api/users/me` | Yes | Current user |
+| POST | `/api/posts` | Yes | Create post (queues AI enrichment) |
 | GET | `/api/posts/{id}` | — | Read post (incl. summary + tags) |
-| PUT / DELETE | `/api/posts/{id}` | ✅ owner | Edit / delete own post (403 otherwise) |
-| POST | `/api/posts/{id}/regenerate-ai` | ✅ owner | Re-run AI (rate-limited, 60 s/post) |
+| PUT / DELETE | `/api/posts/{id}` | Owner | Edit / delete own post (403 otherwise) |
+| POST | `/api/posts/{id}/regenerate-ai` | Owner | Re-run AI (rate-limited, 60 s/post) |
 | GET | `/api/posts/search?tag=x` | — | Tag search (GIN index) |
 | GET | `/api/users/{username}/posts` | — | User's posts, paginated |
-| POST / DELETE | `/api/users/{username}/follow` | ✅ | Follow (400 self, 409 dup) / unfollow |
+| POST / DELETE | `/api/users/{username}/follow` | Yes | Follow (400 self, 409 dup) / unfollow |
 | GET | `/api/users/{username}/followers` `/following` | — | Lists with counts |
-| GET | `/api/feed` | ✅ | Posts from followed users, newest first |
+| GET | `/api/feed` | Yes | Posts from followed users, newest first |
 | GET | `/api/health` | — | Health check |
 
 All list endpoints share one pagination contract: `?limit=` (≤50) `&offset=` → `{"items": [...], "total": N, "limit": L, "offset": O}`.
@@ -139,12 +139,12 @@ cd backend
 
 ## Future work
 
-- 💬 Comments and likes
-- ⏩ Cursor-based pagination for the feed
-- 🔁 Celery + Redis for AI jobs (retries, backpressure, durability)
-- 🔍 Semantic search — pgvector embeddings over post content
-- 🔑 Refresh tokens / token rotation
-- 📊 Alembic migrations (currently `create_all` + manual DDL)
+- Comments and likes
+- Cursor-based pagination for the feed
+- Celery + Redis for AI jobs (retries, backpressure, durability)
+- Semantic search — pgvector embeddings over post content
+- Refresh tokens / token rotation
+- Alembic migrations (currently `create_all` + manual DDL)
 
 ## Deploying (free/cheap)
 
